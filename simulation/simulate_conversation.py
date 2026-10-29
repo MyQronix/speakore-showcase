@@ -10,7 +10,8 @@ Nebius Token Factory, and speaks the translation back. Nothing here is mocked; o
 
 Usage:
     pip install httpx websockets numpy
-    export SPEAKORE_JURY_CODE=...            # judges receive this code privately
+    export SPEAKORE_API=...                  # server address and code: judges receive both privately
+    export SPEAKORE_JURY_CODE=...
     python simulate_conversation.py street   # writes street.wav + street.srt
     python simulate_conversation.py table
 
@@ -190,7 +191,7 @@ def write(mode: str, results: list) -> None:
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "street"
-    if mode not in SCRIPTS or not CODE:
-        sys.exit("Usage: SPEAKORE_JURY_CODE=... python simulate_conversation.py street|table")
+    if mode not in SCRIPTS or not CODE or not API:
+        sys.exit("Usage: SPEAKORE_API=... SPEAKORE_JURY_CODE=... python simulate_conversation.py street|table")
     run = street if mode == "street" else table
     write(mode, asyncio.run(run(SCRIPTS[mode])))

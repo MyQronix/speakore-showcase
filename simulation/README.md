@@ -15,7 +15,8 @@ translation. Nothing is mocked; only the speakers are simulated.
 
 ```bash
 pip install httpx websockets numpy
-export SPEAKORE_JURY_CODE=...     # judges receive this code privately
+export SPEAKORE_API=...           # server address and code: judges receive both privately
+export SPEAKORE_JURY_CODE=...
 python simulate_conversation.py street
 python simulate_conversation.py table
 ```
