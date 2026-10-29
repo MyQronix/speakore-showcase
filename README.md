@@ -84,13 +84,26 @@ laptop in Spain against Token Factory EU:
 Small, self-contained scripts that show the calls SpeaKore makes. They are written for this repository; they are not
 the production code.
 
+| Example | What it shows |
+|---|---|
+| `interpret.py` | One-to-one interpreting with Nemotron Super, thinking off, temperature 0 |
+| `group_table.py` | The table: one sentence into several languages in a single call |
+| `pipeline_separation.py` | The same spoken command is translated by the translate pipeline and executed by Kore |
+| `tool_calling.py` | Kore turning a voice command into an app action |
+| `safety_guard.py` | Nemotron Nano checking an action first, and blocking when in doubt |
+| `embeddings.py` | Qwen3 embeddings picking the right capability for a command |
+
 ```bash
 pip install -r examples/requirements.txt
 export NEBIUS_API_KEY=...        # Windows PowerShell: $env:NEBIUS_API_KEY="..."
-python examples/interpret.py
-python examples/tool_calling.py
-python examples/embeddings.py
+python examples/pipeline_separation.py
 ```
+
+## Simulated conversations
+
+A screen recording can't capture your own voice while the app uses the microphone, so to show both sides of a
+conversation we simulated two people, John (English) and Lucía (Spanish), talking through the live server.
+See [`simulation/`](simulation/) for the script, the voices and an example run.
 
 ## License
 
