@@ -8,6 +8,16 @@
 > Judges: the Android test build and a jury login are in the testing instructions of our submission. Private access
 > to the full code on request: **info@myqronix.com**.
 
+## Demo video
+
+- **Full demo (2:56), with real recordings of the app:** [`media/SpeaKore_demo.mp4`](media/SpeaKore_demo.mp4): Kore greeting you by
+  name, a real conversation at the table (English and Dutch), the street mode with an AI as the second phone, "Kore,
+  hold on" and a joke with its pause.
+- Short version (1:37), as submitted: https://youtu.be/PkgrEEsWz4o
+
+Filmed by hand at home: a screen recording can't capture your own voice, so the best way to judge SpeaKore is to try
+it yourself.
+
 ## What it does
 
 SpeaKore is a mobile app (Android and iOS) that interprets conversations live and lets you control apps by voice.
