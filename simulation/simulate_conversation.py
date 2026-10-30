@@ -66,10 +66,25 @@ def to_out_rate(pcm16k: bytes) -> np.ndarray:
     return np.interp(t, np.arange(len(x)), x).astype(np.int16)
 
 
+TOKENS = Path(__file__).parent / ".tokens.json"  # local only (gitignored): reuse sessions, don't create new accounts
+
+
 def login(name: str) -> str:
-    r = httpx.post(f"{API}/auth/jury", json={"code": CODE, "name": name}, timeout=30)
-    r.raise_for_status()
-    return r.json()["token"]
+    saved = json.loads(TOKENS.read_text()) if TOKENS.exists() else {}
+    if name in saved:
+        r = httpx.post(f"{API}/auth/refresh", json={"refreshToken": saved[name]}, timeout=30)
+        if r.status_code != 200:
+            saved.pop(name)
+    if name not in saved:
+        r = httpx.post(f"{API}/auth/jury", json={"code": CODE, "name": name}, timeout=30)
+        r.raise_for_status()
+    data = r.json()
+    saved[name] = data["refreshToken"]  # refresh tokens rotate: always keep the newest one
+    fd = os.open(TOKENS, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)  # owner-only: these are credentials
+    with os.fdopen(fd, "w") as f:
+        json.dump(saved, f)
+    os.chmod(TOKENS, 0o600)
+    return data["token"]
 
 
 async def send_speech(ws, pcm: bytes) -> float:
@@ -108,7 +123,8 @@ async def collect(ws, is_translation, timeout: float = 20.0, quiet: float = 1.5)
 async def street(turns) -> list:
     socks = {}
     for key, (name, lang, voice) in PEOPLE.items():
-        ws = await connect(f"{WS}/live/p2p?token={login(name)}")
+        # The speaking phone doesn't read its own events during a turn: a large queue keeps the connection alive.
+        ws = await connect(f"{WS}/live/p2p?token={login(name)}", max_queue=4096, ping_interval=None)
         await ws.send(json.dumps({"type": "start", "pipeline": "p2p", "sourceLang": lang, "name": name, "voice": voice}))
         socks[key] = ws
     codes = {}

@@ -5,7 +5,8 @@
 > **About this repository.** SpeaKore is a commercial product by Myqronix Robotics SL, and its source code is private.
 > This repository shows how SpeaKore is built and how it uses **NVIDIA Nemotron through Nebius Token Factory**: the
 > architecture, the model choices with the measurements behind them, and small runnable examples of the calls.
-> Judges are welcome to a test build, a login and private access to the full code on request: **info@myqronix.com**.
+> Judges: the Android test build and a jury login are in the testing instructions of our submission. Private access
+> to the full code on request: **info@myqronix.com**.
 
 ## What it does
 
@@ -17,6 +18,12 @@ SpeaKore is a mobile app (Android and iOS) that interprets conversations live an
 - **Kore, voice control:** "go to settings", "switch to dark mode", "read my latest mail", "send Maria an email that
   I'm late". Reading happens right away. Anything that sends or changes something shows a confirmation card first, and
   Kore never moves money.
+- **Kore is personal:** greets you by name, can be renamed by voice ("call yourself Sonia"), remembers what you ask it
+  to remember ("remember that my dentist is Dr García") and finds it again in any language, and pauses when you talk
+  to someone else ("Sonia, hold on") until you say its name.
+- **Kore stays on topic:** it helps with SpeaKore, your connected services and what you asked it to remember. It does
+  not make up the weather or the news. Jokes, compliments and a bit of flirting are fine; explicit, hateful or
+  dangerous requests are refused.
 - **Connectors:** Gmail and Google Calendar, plus 22 services through their official MCP servers, each connected per
   user with OAuth.
 - Speech in **16 languages**. Built for accessibility: screen readers, 200% text, reduced motion.
@@ -33,13 +40,21 @@ graph TD
     API -->|translate: street, table| I[Speech to text -> Nemotron Super -> text to speech]
     API -->|translate: languages without a native voice| V[Voice agent route + think-proxy -> Nemotron]
     API -->|control: Kore| K[Speech to text -> Nemotron Super with tools -> voice]
+    K --> M[Content check: Nemotron Nano, in parallel with the answer]
     K --> G[Safety guard: Nemotron Nano, then confirmation card]
     K --> C[Connectors: Google APIs + MCP servers, OAuth per user]
     K --> E[Capability library: Qwen3 embeddings in pgvector]
+    K --> R[Personal memory: encrypted facts + Qwen3 vectors, retrieved per command]
     API --> DB[(PostgreSQL + pgvector, row-level security, field encryption)]
 ```
 
-The app never calls an external service directly. Every model call, connector call and key lives in the backend.
+The app never calls an external service directly. Every model call, connector call and key lives in the backend,
+which runs on **Nebius AI Cloud** (France, eu-west1) in Docker, with PostgreSQL and pgvector on the same server.
+
+**Memory without fine-tuning.** Kore's memory is retrieval, not fine-tuning: what you ask it to remember is stored
+encrypted with a Qwen3 vector, and the facts that fit a command are added to Nemotron's prompt. Each fact can be
+forgotten on request and is erased with your data, which a fine-tuned model could not do. Passwords, PINs and card or
+account numbers are never stored.
 
 ## NVIDIA Nemotron on Nebius Token Factory
 
@@ -49,31 +64,58 @@ latency (`chat_template_kwargs: {"enable_thinking": false}`).
 | Model | Role in SpeaKore |
 |---|---|
 | `nvidia/nemotron-3-super-120b-a12b` | Interpreting (one-to-one and the table, where one sentence becomes every language at the table in a single call) and Kore's tool calling |
-| `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | Safety guard: classifies every connector action before the user sees it, and blocks when in doubt |
-| `Qwen/Qwen3-Embedding-8B` (1024 dims) | Capability library: per command, only the tools that match go to Kore |
+| `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | Safety guard: classifies every connector action before the user sees it, and blocks when in doubt. Content check on every request to Kore, in parallel with the answer |
+| `Qwen/Qwen3-Embedding-8B` (1024 dims) | Capability library (per command, only the tools that match go to Kore) and Kore's personal memory |
 
 **Why these models (our own measurements):**
 - Interpreting: Nano turned "half past eight" into 9:30 in 3 of 6 clock-time tests; Super got 6 of 6 right and was
   steadier (max 0.6 s vs 3.7 s).
 - Kore's tool calling: Super chose the right action in 11 of 12 commands with at most 0.9 s per step. Another
   Nemotron model also scored 11 of 12 but swung between 0.5 and 10 s per step; Nano scored 7 of 12.
-- Embeddings at 1024 dimensions matched as well as 4096 in our tests, at a quarter of the size.
+- Embeddings at 1024 dimensions matched as well as 4096 in our tests, at a quarter of the size. For the memory, real
+  matches scored 0.66 to 0.88 (also across languages: a Spanish question finds a Dutch fact), unrelated commands at
+  most 0.60, so the threshold is 0.63.
+- Content check: Nano blocked 4 of 4 explicit, violent or hateful requests and let 5 of 5 normal ones through (jokes,
+  a love message, a compliment, an app command, mild swearing), in 0.3 to 0.5 s, while Super is already answering.
 
 Token Factory let us use several models in one conversation, each for the job it does best, without running GPUs.
 
 ## Measured
 
-End of a spoken sentence to the start of the spoken translation, with real speech, measured on 29 Oct 2026 from a
-laptop in Spain against Token Factory EU:
+Measured on 29 Oct 2026 from our server on Nebius AI Cloud (France) with real speech:
 
-| Direction | Time |
+| What | Time |
 |---|---|
-| Spanish → Dutch | 0.99 s |
-| Dutch → Spanish | 1.53 s |
+| One Nemotron Super call | 0.26 to 0.46 s |
+| One Nemotron Nano call | 0.16 s |
+| Speech to text (Deepgram EU) | 0.34 s |
+| In the street: end of a sentence to the other phone's spoken translation | 1.1 to 1.8 s |
+| At the table: end of a turn to the spoken translation | 0.5 to 1.9 s |
+| One sentence into 7 languages in a single call | 0.9 to 1.4 s |
+
+From a laptop in Spain the same model calls took 0.9 to 1.8 s, which is why the backend runs next to Token Factory.
+
+## How to use
+
+1. **Sign in** and accept the consent screen (it names every service that processes your speech).
+2. **At the table:** Translate → At the table. Set each seat's language, tap your seat, speak, tap again when done.
+   Everyone else sees and hears it in their own language.
+3. **In the street:** both people open Translate → In the street on their own phone and connect with the code or QR
+   code. Then just talk.
+4. **Kore:** the round button opens Kore, or just speak when the app is open. Try:
+   - "What can you do?"
+   - "Switch to dark mode", "Go to my profile"
+   - "Remember that my dentist is Dr García", then later "What's my dentist called?", and "Forget my dentist"
+   - "Tell me a joke" (the punchline comes after a short pause)
+   - "Call yourself Sonia"
+   - "Sonia, hold on" pauses Kore while you talk to someone else; say "Sonia" to bring it back
+   - After connecting Gmail: "Read my latest mail", "Send Ana a mail that I'm running late" (confirmation card first)
 
 ## Privacy and safety
 
-- No audio and no transcripts are stored. Logs contain events, never content.
+- No audio and no transcripts are stored. Logs contain events, never content. The only content we keep is what you
+  ask Kore to remember, encrypted, until you tell it to forget or erase your data.
+- The interpreter is never censored: it translates what people say. The content check applies to Kore only.
 - The raw transcript is always shown next to the translation, so you can see exactly what was heard.
 - Every write action passes the Nemotron guard and a confirmation card. Financial connectors only get tools the
   provider marks as read-only.
