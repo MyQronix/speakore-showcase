@@ -28,7 +28,7 @@ speech and real model calls in all 16 app languages.
 - **Kore learns how you talk**: a phrase you used twice for the same screen action becomes your personal shortcut.
 - **Faster first words**: Kore starts speaking while the answer is still being written.
 - **A new app build** with small improvements (a longer connection between commands, a haptic tick when Kore heard
-  you) follows tonight. Judges who want it can ask us: info@myqronix.com.
+  you) is available. Judges who want it can ask us: info@myqronix.com.
 
 ## Demo video
 
