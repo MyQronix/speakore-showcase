@@ -8,6 +8,28 @@
 > Judges: the Android test build and a jury login are in the testing instructions of our submission. Private access
 > to the full code on request: **info@myqronix.com**.
 
+## Since the submission
+
+The judges test the version we submitted on 30 October. We keep building: everything below is live on our server
+since **31 October 2026, 18:55 CET**, so the submitted app benefits from it too. Each item was measured with real
+speech and real model calls in all 16 app languages.
+
+- **Kore helps instead of refusing.** The content check no longer blocks ordinary requests such as reading your own
+  mail or asking about your own appointments (400 of 400 allowed in 16 languages); harmful requests are still always
+  refused.
+- **Mail by voice, safely, in every language.** Kore only sends to an address you said or asked it to remember, and
+  asks when it doesn't know one (16 of 16). A made-up address never reaches the confirmation card. Spoken addresses
+  ("name at company dot com") work, and so does "mail Maria" followed by "that I'm late".
+- **Kore answers in your app language**, always, whatever language its instructions are written in.
+- **Memory works across languages** (ask in Arabic, Hindi or Japanese about something you said in English) and
+  "remember …" is instant. "Forget …" removes it at once.
+- **Kore never goes silent or deaf on an error**: it says briefly that something didn't work and keeps listening.
+- **"Hold on" and calling Kore back by name work in every script** (Коре, コア, 科尔, 코어, كور, कोर).
+- **Kore learns how you talk**: a phrase you used twice for the same screen action becomes your personal shortcut.
+- **Faster first words**: Kore starts speaking while the answer is still being written.
+- **A new app build** with small improvements (a longer connection between commands, a haptic tick when Kore heard
+  you) follows tonight. Judges who want it can ask us: info@myqronix.com.
+
 ## Demo video
 
 - **Full demo (2:56), with real recordings of the app:** [`media/SpeaKore_demo.mp4`](media/SpeaKore_demo.mp4): Kore greeting you by
