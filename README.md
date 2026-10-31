@@ -20,7 +20,7 @@ speech and real model calls in all 16 app languages.
 - **Mail by voice, safely, in every language.** Kore only sends to an address you said or asked it to remember, and
   asks when it doesn't know one (16 of 16). A made-up address never reaches the confirmation card. Spoken addresses
   ("name at company dot com") work, and so does "mail Maria" followed by "that I'm late".
-- **Kore answers in your app language**, always, whatever language its instructions are written in.
+- **Kore answers in your app language**: its instructions are written in English and end with your app language.
 - **Memory works across languages** (ask in Arabic, Hindi or Japanese about something you said in English) and
   "remember …" is instant. "Forget …" removes it at once.
 - **Kore never goes silent or deaf on an error**: it says briefly that something didn't work and keeps listening.
